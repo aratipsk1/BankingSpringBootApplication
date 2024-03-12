@@ -5,8 +5,8 @@ node{
     stage('Prepare Environment'){
         echo 'Initialize Environment'
         tag="3.0"
-	withCredentials([usernamePassword(credentialsId: 'dockerHubAccount', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
-		dockerHubUser="$dockerUser"
+	withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
+		dockerHubUser="aratipawashe"
         }
 	containerName="bankingapp"
 	httpPort="8989"
@@ -22,7 +22,7 @@ node{
         }
     }
     
-    stage('Maven Build'){
+    stage('Maven Build'){  
         sh "mvn clean package"        
     }
     
@@ -33,7 +33,7 @@ node{
 	
     stage('Publishing Image to DockerHub'){
         echo 'Pushing the docker image to DockerHub'
-        withCredentials([usernamePassword(credentialsId: 'dockerHubAccount', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
+        withCredentials([usernamePassword(credentialsId: 'docker', usernameVariable: 'dockerUser', passwordVariable: 'dockerPassword')]) {
 		sh "docker login -u $dockerUser -p $dockerPassword"
 		sh "docker push $dockerUser/$containerName:$tag"
 		echo "Image push complete"
@@ -41,8 +41,7 @@ node{
     }    
 	
 	stage('Ansible Playbook Execution'){
-		sh "ansible-playbook -i inventory.yaml kubernetesDeploy.yaml -e httpPort=$httpPort -e containerName=$containerName -e dockerImageTag=$dockerHubUser/$containerName:$tag"
+
+    			sh "ansible-playbook -i inventory.yaml kubernetesDeploy.yaml -e httpPort=$httpPort -e containerName=$containerName -e dockerImageTag=$dockerHubUser/$containerName:$tag"		
 	}
 }
-
-
